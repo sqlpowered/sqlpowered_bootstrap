@@ -16,13 +16,13 @@ func Load(fileName string) (map[string]string, error) {
 		return nil, fmt.Errorf(errorString)
 	}
 
-	secretsMap := map[string]string{}
-	err = json.Unmarshal(secretsBytes, &secretsMap)
+	apiConfig := map[string]string{}
+	err = json.Unmarshal(secretsBytes, &apiConfig)
 	if err != nil {
 		errorString := fmt.Sprintf("unable to process data loaded from: api_config.json error: %+v", err)
 		log.Print(errorString)
 		return nil, fmt.Errorf(errorString)
 	}
 
-	return secretsMap, nil
+	return apiConfig, nil
 }

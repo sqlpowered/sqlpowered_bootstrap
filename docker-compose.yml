@@ -1,0 +1,16 @@
+# Use postgres/example user/password credentials
+version: '3.7'
+
+services:
+
+  db:
+    image: postgres:15.1
+    environment:
+      POSTGRES_DB: sqlpowered_bootstrap
+      POSTGRES_PASSWORD: password
+      ENVIRONMENT: development
+    ports:
+      - "5432:5432"
+    volumes:
+      # load example data
+      - ./test_data:/docker-entrypoint-initdb.d

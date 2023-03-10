@@ -5,18 +5,15 @@ import (
 	"sqlpowered_bootstrap/api_config_management"
 	"sqlpowered_bootstrap/lookup"
 	"testing"
+
+	"golang.org/x/exp/slices"
 )
 
 func TestSelectBuild(t *testing.T) {
 
-	// ColumnName   string        `json:"column_name"`
-	// TableName    string        `json:"table_name"`
-	// ValuesList   []string      `json:"values_list"`
-	// FunctionList []SqlFunction `json:"function_list"`
-	// TypeCast     string        `json:"type_cast"`
 	inputData := map[string]any{
-		"column_name": "name",
-		"table_name":  "product",
+		"column": "name",
+		"table":  "product",
 	}
 
 	apiConfigFilename := "../api_config.json"
@@ -55,5 +52,38 @@ func TestSelectBuild(t *testing.T) {
 		allTables,
 		allTablesColumns,
 	)
+
+}
+
+func TestReplaceValuesQueryParameter(t *testing.T) {
+
+	expectedQueryParametersOutput := []string{"drop tables;", "--", ";"}
+	selectOutput := []string{"$1", "$2", "$3"}
+
+	inputSelect := Select{Values: slices.Clone(expectedQueryParametersOutput)}
+	queryParameters := QueryParameters{}
+
+	log.Printf("%+v", inputSelect)
+	log.Printf("%+v\n\n", queryParameters)
+	inputSelect, queryParameters = ReplaceValuesQueryParameter(
+		inputSelect,
+		queryParameters,
+	)
+	log.Printf("%+v", inputSelect)
+	log.Printf("%+v", queryParameters)
+
+	if !slices.Equal(queryParameters.Values, expectedQueryParametersOutput) {
+		log.Fatalf("unable to produce expected output: %v in queryParameters.Values: %v",
+			expectedQueryParametersOutput,
+			queryParameters.Values,
+		)
+	}
+
+	if !slices.Equal(inputSelect.Values, selectOutput) {
+		log.Fatalf(`unable to produce selectOutput: %v in "values": %v`,
+			selectOutput,
+			inputSelect.Values,
+		)
+	}
 
 }

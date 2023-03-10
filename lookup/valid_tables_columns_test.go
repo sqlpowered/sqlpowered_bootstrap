@@ -95,13 +95,13 @@ func TestListAllTablesColumns(t *testing.T) {
 	}
 
 	// order agnostic equals comparisons for slice
-	for tableName, columnNameSlice := range expectedTablesColumns {
-		if tablesColumns[tableName] == nil {
-			log.Fatalf("unable to produce output for table: %s", tableName)
+	for table, columnNameSlice := range expectedTablesColumns {
+		if tablesColumns[table] == nil {
+			log.Fatalf("unable to produce output for table: %s", table)
 		}
 		for _, columnName := range columnNameSlice {
-			if !slices.Contains(tablesColumns[tableName], columnName) {
-				log.Fatalf("missing column %s for table %s ", columnName, tableName)
+			if !slices.Contains(tablesColumns[table], columnName) {
+				log.Fatalf("missing column %s for table %s ", columnName, table)
 			}
 		}
 	}

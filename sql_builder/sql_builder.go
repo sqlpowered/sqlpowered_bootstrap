@@ -9,7 +9,7 @@ type SqlInput struct {
 	RightJoin []Join
 	OuterJoin []Join
 	Where     []Where
-	GroupBy   []Select
+	GroupBy   []GroupBy
 	Having    []Where
 }
 

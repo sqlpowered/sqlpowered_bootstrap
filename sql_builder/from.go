@@ -1,7 +1,7 @@
 package sql_builder
 
 type From struct {
-	Tables []string `json:"tables,omitempty"`
+	Tables []string
 }
 
 type FromOutput struct {

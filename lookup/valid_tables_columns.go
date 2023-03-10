@@ -25,8 +25,8 @@ func ListAllTables(
 	// Then can support values from an API as well as the current config file
 	if len(excludedTables) > 0 {
 		excludedTablesQuoted := []string{}
-		for _, tableName := range excludedTables {
-			excludedTablesQuoted = append(excludedTablesQuoted, pq.QuoteLiteral(tableName))
+		for _, table := range excludedTables {
+			excludedTablesQuoted = append(excludedTablesQuoted, pq.QuoteLiteral(table))
 		}
 
 		sqlQuery = fmt.Sprintf(`
@@ -75,94 +75,24 @@ func ListAllTables(
 	}
 	defer sqlRows.Close()
 
-	tableNameSlice := []string{}
-	tableName := ""
+	tableSlice := []string{}
+	table := ""
 
 	for sqlRows.Next() {
 
 		err := sqlRows.Scan(
-			&tableName,
+			&table,
 		)
 		if err != nil {
 			errorString := fmt.Sprintf("Failed querying database, error: %s", err)
 			log.Print(errorString)
 			return nil, err
 		}
-		tableNameSlice = append(tableNameSlice, tableName)
+		tableSlice = append(tableSlice, table)
 	}
 
-	return tableNameSlice, nil
+	return tableSlice, nil
 }
-
-// func ListAllTablesColumns(
-// 	apiConfig map[string]string,
-// 	tablesList []string,
-// ) (map[string][]string, error) {
-
-// 	db, err := database_utils.Connect(apiConfig)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	includedTablesQuoted := []string{}
-// 	for _, tableName := range tablesList {
-// 		includedTablesQuoted = append(includedTablesQuoted, pq.QuoteLiteral(tableName))
-// 	}
-
-// 	// this outputs easy to split strings
-// 	sqlQuery := fmt.Sprintf(`
-// 	select
-// 		table_name,
-// 		string_agg(column_name, ',') as column_name
-// 	from
-// 		information_schema.columns
-// 	where
-// 		table_name in (%s)
-// 		and table_schema = %s
-// 		and table_catalog = %s
-// 	group by
-// 		table_name
-// 	order by
-// 		table_name, column_name;
-// 	`,
-// 		strings.Join(includedTablesQuoted, ","),
-// 		pq.QuoteLiteral(apiConfig["databaseSchemaName"]),
-// 		pq.QuoteLiteral(apiConfig["databaseName"]),
-// 	)
-
-// 	log.Print(sqlQuery)
-
-// 	sqlRows, err := db.Query(sqlQuery)
-
-// 	if err != nil {
-// 		errorString := fmt.Sprintf("Failed querying database, error: %s", err)
-// 		log.Print(errorString)
-// 		return nil, fmt.Errorf(errorString)
-// 	}
-// 	defer sqlRows.Close()
-
-// 	tableName := ""
-// 	columnNamesString := ""
-
-// 	tableColumnsMap := map[string][]string{}
-
-// 	for sqlRows.Next() {
-
-// 		err = sqlRows.Scan(
-// 			&tableName,
-// 			&columnNamesString,
-// 		)
-// 		if err != nil {
-// 			errorString := fmt.Sprintf("unable to ListAllTablesColumns, error: %v", err)
-// 			log.Print(errorString)
-// 			return nil, fmt.Errorf(errorString)
-// 		}
-// 		// query outputs array as a string, which we split back into an array in the function here
-// 		tableColumnsMap[tableName] = strings.Split(columnNamesString, ",")
-// 	}
-// 	return tableColumnsMap, nil
-
-// }
 
 func ListAllTablesColumns(
 	apiConfig map[string]string,
@@ -175,8 +105,8 @@ func ListAllTablesColumns(
 	}
 
 	includedTablesQuoted := []string{}
-	for _, tableName := range tablesList {
-		includedTablesQuoted = append(includedTablesQuoted, pq.QuoteLiteral(tableName))
+	for _, table := range tablesList {
+		includedTablesQuoted = append(includedTablesQuoted, pq.QuoteLiteral(table))
 	}
 
 	// this outputs easy to split strings
@@ -211,7 +141,7 @@ func ListAllTablesColumns(
 	}
 	defer sqlRows.Close()
 
-	tableName := ""
+	table := ""
 	columnNamesString := ""
 
 	tableColumnsMap := map[string][]string{}
@@ -219,7 +149,7 @@ func ListAllTablesColumns(
 	for sqlRows.Next() {
 
 		err = sqlRows.Scan(
-			&tableName,
+			&table,
 			&columnNamesString,
 		)
 		if err != nil {
@@ -228,7 +158,7 @@ func ListAllTablesColumns(
 			return nil, fmt.Errorf(errorString)
 		}
 		// query outputs array as a string, which we split back into an array in the function here
-		tableColumnsMap[tableName] = strings.Split(columnNamesString, ",")
+		tableColumnsMap[table] = strings.Split(columnNamesString, ",")
 	}
 	return tableColumnsMap, nil
 

@@ -1,8 +1,11 @@
 package sql_builder
 
-// A clear separation between input and output data
-type SqlQuery struct {
-	Cte       []Cte     `json:"cte,omitempty"`
+type Cte struct {
+	Sql SqlQuery `json:"sql"`
+	As  string   `json:"as"`
+}
+
+type SqlCte struct {
 	Select    []Select  `json:"select,omitempty"`
 	From      []string  `json:"from,omitempty"`
 	InnerJoin []Join    `json:"inner_join,omitempty"`
@@ -14,10 +17,3 @@ type SqlQuery struct {
 	Having    []Where   `json:"having,omitempty"`
 	OrderBy   []OrderBy `json:"order_by,omitempty"`
 }
-
-// type SqlOutput struct {
-// 	Select []SelectOutput
-// 	From   []FromOutput
-// 	Join   []JoinOutput
-// 	Where  []WhereOutput
-// }

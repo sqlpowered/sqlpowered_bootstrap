@@ -11,7 +11,7 @@ import (
 
 type Case struct {
 	CaseWhens      []CaseWhens `json:"whens"`
-	ElseExpression Select      `json:"else"`
+	ElseExpression Select      `json:"else,omitempty"`
 }
 
 type CaseWhens struct {
@@ -20,13 +20,13 @@ type CaseWhens struct {
 }
 
 type Select struct {
-	Table  string   `json:"table"`
-	Column string   `json:"column"`
-	As     string   `json:"as"`
-	Values []string `json:"values"`
-	Fns    []Fn     `json:"fns"`
-	Type   string   `json:"type"`
-	Case   *Case    `json:"case"`
+	Table  string   `json:"table,omitempty"`
+	Column string   `json:"column,omitempty"`
+	As     string   `json:"as,omitempty"`
+	Values []string `json:"values,omitempty"`
+	Fns    []Fn     `json:"fns,omitempty"`
+	Type   string   `json:"type,omitempty"`
+	Case   *Case    `json:"case,omitempty"`
 }
 
 type SelectOutput struct {

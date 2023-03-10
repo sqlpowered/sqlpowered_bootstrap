@@ -41,19 +41,22 @@ A mixture of:
     ],
     "from": ["customers"],
     "left_join": [
-        [{ "table": "orders", "column": "customer_id"}, "eq", { "table": "customers", "column": "id"}]
+        {
+            "arg1": { "table": "orders", "column": "customer_id"}, 
+            "op": "eq", 
+            "arg2": { "table": "customers", "column": "id"}
+        }
     ],
     "where": [
-        [
-            { "table": "customers", "column": "name"}, 
-            "eq", 
-            { "table": "customers", "column": "id"}
-        ]
+        {
+            "left": { "table": "customers", "column": "name"}, 
+            "op": "eq", 
+            "right": { "table": "customers", "column": "id"}
+        }
     ],
     "order_by" : [
-        { "table": "customers", "column": "name"}, 
-        { "table": "customers", "column": "country"}, 
-        "asc"
+        { "table": "customers", "column": "name", "order": "asc"}, 
+        { "table": "customers", "column": "country", "order": "asc"}, 
     ]
 }
 ```
@@ -80,7 +83,7 @@ HAVING
 
 ```
 
-We can still manage this but it gets harder to deal with:
+More complex query is possible but it gets more nested
 ```json
 {
     "select" :[
@@ -94,7 +97,11 @@ We can still manage this but it gets harder to deal with:
                 { "fn":"sum" }, 
                 { "fn": "mult", "args": [
                     { "table": "products", "column": "price", "fns": [
-                        { "fn":"sub", "args": [ { "table": "products", "column":"price" } ] }
+                        { 
+                            "fn":"sub", "args": [ 
+                                { "table": "products", "column":"price" } 
+                            ] 
+                        }
                     ]}
                 ]}
             ] 
@@ -102,18 +109,18 @@ We can still manage this but it gets harder to deal with:
     ],
     "from": ["products"],
     "left_join": [
-        [
-            { "table": "sales", "column": "product_id" }, 
-            "eq", 
-            { "table": "products", "column": "product_id" }
-        ]
+        {
+            "arg1": { "table": "sales", "column": "product_id" }, 
+            "op": "eq", 
+            "arg2": { "table": "products", "column": "product_id" }
+        }
     ],
     "where": [
-        [
-            { "table":"sales", "column":"date" }, 
-            "gt", 
-            { "values": ["2023-01-01"] }
-        ]
+        {
+            "left": { "table":"sales", "column":"date" }, 
+            "op": "gt", 
+            "right": { "values": ["2023-01-01"] }
+        }
     ],
     "group_by" : [
         { "table": "products", "column": "product_id" },
@@ -122,20 +129,22 @@ We can still manage this but it gets harder to deal with:
         { "table": "products", "column": "cost" },
     ],
     "having" :[
-        { 
-            "table": "products", 
-            "column": "price", 
-            "fns": [
-                { 
-                    "fn": "mult", "args": [ 
-                        { "table": "sales", "column": "units" }
-                    ]
-                },
-                { "fn": "sum" }
-            ] 
-        },
-        "gt",
-        { "values": ["5000"] }
+        {
+            "left": { 
+                "table": "products", 
+                "column": "price", 
+                "fns": [
+                    { 
+                        "fn": "mult", "args": [ 
+                            { "table": "sales", "column": "units" }
+                        ]
+                    },
+                    { "fn": "sum" }
+                ] 
+            },
+            "op": "gt",
+            "right": { "values": ["5000"] }
+        }
     ]
 }
 ```
@@ -143,7 +152,7 @@ We can still manage this but it gets harder to deal with:
 Once "bootstrap" is fully functional we can look to create a compiler to make this easier:
 ```json
 {
-    "select" :[
+    "select": [
         "product_id",
         "products.name",
         "(sum(sales.units) * (products.price - products.cost) as profit"
@@ -155,13 +164,13 @@ Once "bootstrap" is fully functional we can look to create a compiler to make th
     "where": [
         "sales.date > '2023-01-01'"
     ],
-    "group_by" : [
+    "group_by": [
         "products.product_id",
         "products.name",
         "products.price",
         "products.cost"
     ],
-    "having" :[
+    "having": [
         "sum( products.price * sales.units ) > 5000"
     ]
 }

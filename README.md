@@ -140,7 +140,7 @@ We can still manage this but it gets harder to deal with:
 }
 ```
 
-Once bootstrap is fully functional we can look to create a compiler to make this easier:
+Once "bootstrap" is fully functional we can look to create a compiler to make this easier:
 ```json
 {
     "select" :[

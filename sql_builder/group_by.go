@@ -1,8 +1,8 @@
 package sql_builder
 
 type GroupBy struct {
-	ColumnName string `json:"column_name"`
-	TableName  string `json:"table_name,omitempty"`
+	Column string `json:"column"`
+	Table  string `json:"table,omitempty"`
 }
 
 type GroupByOutput struct {

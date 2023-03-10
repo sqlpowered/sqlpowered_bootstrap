@@ -19,15 +19,15 @@ func ReplaceValuesListQueryParameter(
 	QueryParameters,
 ) {
 
-	if len(selectInstance.ValuesList) > 0 {
-		for index, valuesItem := range selectInstance.ValuesList {
+	if len(selectInstance.Values) > 0 {
+		for index, valuesItem := range selectInstance.Values {
 
 			// length is 1 indexed, so only need to add one
-			newSubstitutionValue := fmt.Sprintf("$%d", len(queryParameters.ValuesList)+1)
+			newSubstitutionValue := fmt.Sprintf("$%d", len(queryParameters.Values)+1)
 
 			// add the valuesItem to queryParameters, and replace with query parameter
-			queryParameters.ValuesList = append(queryParameters.ValuesList, valuesItem)
-			selectInstance.ValuesList[index] = newSubstitutionValue
+			queryParameters.Values = append(queryParameters.Values, valuesItem)
+			selectInstance.Values[index] = newSubstitutionValue
 		}
 	}
 

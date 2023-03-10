@@ -1,5 +1,12 @@
 package lookup
 
+/**
+
+This file aims to define valid and minimum required statement components for each of the 4 main statement types:
+insert, update, delete, select
+
+**/
+
 // =================================
 func ValidSelectKeys() []string {
 	return []string{
@@ -8,6 +15,7 @@ func ValidSelectKeys() []string {
 		"join",
 		"where",
 		"group_by",
+		"having",
 	}
 }
 func MinimumSelectKeys() []string {

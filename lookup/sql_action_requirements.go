@@ -1,5 +1,12 @@
 package lookup
 
+/**
+
+This file aims to define the specifications of what is allowed for each of the 4 main statement types:
+insert, update, delete, select
+
+**/
+
 type SqlActionRequirements struct {
 	ValidFields   []string
 	MinimumFields []string
@@ -133,6 +140,7 @@ func SelectRequirements(
 	joinSpec := FieldSpec{}
 	whereSpec := FieldSpec{}
 	groupBySpec := FieldSpec{}
+	havingSpec := FieldSpec{}
 
 	requirements := SqlActionRequirements{
 		ValidFields:   ValidSelectKeys(),
@@ -172,6 +180,13 @@ func SelectRequirements(
 				MaxLength:         maxNumGroupBy,
 				MaxRecursionDepth: 1,
 				ComponentSpec:     &groupBySpec,
+			},
+			{
+				FieldName:         "having",
+				MinLength:         1,
+				MaxLength:         maxNumWhereConditions,
+				MaxRecursionDepth: 1,
+				ComponentSpec:     &havingSpec,
 			},
 		},
 	}

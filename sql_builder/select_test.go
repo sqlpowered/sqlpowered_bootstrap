@@ -49,7 +49,7 @@ func TestSelectBuild(t *testing.T) {
 			RecursionInQuery:   5,
 			RowLimit:           1000,
 			NumColumnsSelected: 100,
-			ValuesList:         []string{},
+			Values:             []string{},
 		},
 		Permissions{},
 		allTables,

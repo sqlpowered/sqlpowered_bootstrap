@@ -1,47 +1,37 @@
-Goals
+Design ideas
 ===========
 
-make simplifying assumptions
-Simplify syntax for data fetching use-case
-
+Syntax goal for "bootstrap" initial implementation
+A mixture of:
+    named arguments in expressions (eg select) where we need the flexibility
+    positional arguments in more rigid parts, eg join and where and order_by
 
 ```json
 {
     "select" :[
-        ["customers.name"], 
-        ["customers.country"]
+        { "table": "customers", "column": "name" }, 
+        { "table": "customers", "column": "country" }
     ],
     "from": ["customers"],
     "left_join": [
-        ["orders.customer_id", "jsql.eq", "customers.id"]
+        [{ "table": "orders", "column": "customer_id"}, "eq", { "table": "customers", "column": "id"}]
     ],
     "where": [
-        ["customers.name", "jsql.neq", "Johnny droptables"]
+        [
+            { "table": "customers", "column": "name"}, 
+            "eq", 
+            { "table": "customers", "column": "id"}
+        ]
     ],
-    "order_by" : ["customers.name", "customers.country", "jsql.asc"]
-}
-```
-Prefixing operators and functions makes them easier to identify
-
-Functions, let's have a crack!
-```json
-{
-    "select" :[
-        ["customers.name"],
-        ["jsql.max(", "order.order_amount", ")"]
-    ],
-    "from": ["customers"],
-    "left_join": [
-        ["orders.customer_id", "jsql.eq", "customers.id"]
-    ],
-    "where": [
-        ["customers.name", "jsql.neq", "Johnny droptables"]
-    ],
-    "order_by" : ["customers.name", "customers.country", "jsql.asc"]
+    "order_by" : [
+        { "table": "customers", "column": "name"}, 
+        { "table": "customers", "column": "country"}, 
+        "asc"
+    ]
 }
 ```
 
-Let's try something more complex
+A more complex SQL query to represent:
 
 ```sql
 SELECT
@@ -50,11 +40,11 @@ SELECT
 	(SUM(sales.units) * (products.price - products.cost)) AS profit
 FROM
 	products
-	LEFT JOIN sales USING (product_id)
+	LEFT JOIN sales on sales.product_id = products.product_id
 WHERE
-	sales.date > CURRENT_DATE - INTERVAL '4 weeks'
+	sales.date > '2023-01-01'
 GROUP BY
-	product_id,
+	products.product_id,
 	products.name,
 	products.price,
 	products.cost
@@ -63,99 +53,67 @@ HAVING
 
 ```
 
-
+This approach using positional arguments, clearly falls down in this example, see below:
 ```json
 {
     "select" :[
-        ["product_id"],
-        ["products.name"],
-        ["(", "jsql.mult(", "jsql.sum(", "sales.units", ")", 
-         "jsql.sub(", "products.price", "products.cost", ")",")", ")", "jsql.as(", "profit", ")"]
+        { "table": "products", "column": "product_id" },
+        { "table": "products", "column": "name" },
+        { 
+            "table": "sales", 
+            "column": "units",
+            "as": "profit",
+            "fns": [
+                { "fn":"sum" }, 
+                { "fn": "mult", "args": [
+                    { "table": "products", "column": "price", "fns": [
+                        { "fn":"sub", "args": [ { "table": "products", "column":"price" } ] }
+                    ]}
+                ]}
+            ] 
+        }
     ],
     "from": ["products"],
     "left_join": [
-        ["sales", "jsql.using", "product_id"]
+        [
+            { "table": "sales", "column": "product_id" }, 
+            "eq", 
+            { "table": "products", "column": "product_id" }
+        ]
     ],
     "where": [
-        ["sales.date", "jsql.gt", "jsql.sub(", "CURRENT_DATE", "INTERVAL '4 weeks'", ")"]
+        [
+            { "table":"sales", "column":"date" }, 
+            "gt", 
+            { "values": ["2023-01-01"] }
+        ]
     ],
     "group_by" : [
-        ["product_id"],
-        ["products.name"],
-        ["products.price"],
-        ["products.cost"]
+        { "table": "products", "column": "product_id" },
+        { "table": "products", "column": "name" },
+        { "table": "products", "column": "price" },
+        { "table": "products", "column": "cost" },
     ],
     "having" :[
-        ["jsql.sum(", "jsql.mult(", "products.price", "sales.units", ")", ")", 
-        "jsql.gt(", "5000", ")"]
-    ]
-}
-```
-This uses functions to make the sql easier to parse and is already tokenised
-tokenised is quite ugly let's try taking that on:
-
-
-```json
-{
-    "select" :[
-        ["product_id"],
-        ["products.name"],
-        ["( jsql.mult( jsql.sum(sales.units), jsql.sub( products.price, products.cost ) ) ) jsql.as(profit)"]
-    ],
-    "from": ["products"],
-    "left_join": [
-        ["sales jsql.using product_id"]
-    ],
-    "where": [
-        ["sales.date jsql.gt jsql.sub( CURRENT_DATE, INTERVAL '4 weeks' )"]
-    ],
-    "group_by" : [
-        ["product_id"],
-        ["products.name"],
-        ["products.price"],
-        ["products.cost"]
-    ],
-    "having" :[
-        ["jsql.sum( jsql.mult( products.price, sales.units ) ) jsql.gt(5000)"]
-    ]
-}
-```
-
-
-```json
-{
-    "select" :[
-        "product_id",
-        "products.name",
-        "(jsql.sum(sales.units) jsql.multiply (products.price jsql.minus products.cost) jsql.as(profit)"
-    ],
-    "from": ["products"],
-    "left_join": [
-        "sales jsql.using product_id"
-    ],
-    "where": [
-        "sales.date jsql.gt (CURRENT_DATE jsql.minus INTERVAL '4 weeks')"
-    ],
-    "group_by" : [
-        "product_id"
-        "products.name"
-        "products.price"
-        "products.cost"
-    ],
-    "having" :[
-        "jsql.sum( products.price jsql.multiply sales.units ) jsql.gt 5000"
+        { 
+            "table": "products", 
+            "column": "price", 
+            "fns": [
+                { 
+                    "fn": "mult", "args": [ 
+                        { "table": "sales", "column": "units" }
+                    ]
+                },
+                { "fn": "sum" }
+            ] 
+        },
+        "gt",
+        { "values": ["5000"] }
     ]
 }
 ```
 
-This is slightly less readable but likely easier to encode/decode.
-worth trying to see if that's really a problem we need to fix or not...
-
-
-With tokenisation taken care of and everything as a function, it's relatively simple
-if we can cope with operators instead of just functions:
-
-
+Once bootstrap is fully functional we can look to create a compiler to make this easier:
 ```json
 {
     "select" :[
@@ -168,7 +126,7 @@ if we can cope with operators instead of just functions:
         "sales using product_id"
     ],
     "where": [
-        "sales.date > (CURRENT_DATE - INTERVAL '4 weeks')"
+        "sales.date > '2023-01-01'"
     ],
     "group_by" : [
         "products.product_id",
@@ -182,5 +140,4 @@ if we can cope with operators instead of just functions:
 }
 ```
 
-much more readable now, and relatively few operators added, still retaining function prefixes
-if * / -> etc are not easily encoded/decoded by the users can try:
+

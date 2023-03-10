@@ -7,13 +7,24 @@ import (
 	"sqlpowered_bootstrap/lookup"
 )
 
+type Case struct {
+	CaseArgs       []CaseWhens `json:"whens"`
+	ElseExpression Select      `json:"else"`
+}
+
+type CaseWhens struct {
+	When []Where `json:"when"`
+	Then Select  `json:"then"`
+}
+
 type Select struct {
-	ColumnName   string        `json:"column_name"`
-	TableName    string        `json:"table_name"`
-	ValuesList   []string      `json:"values_list"`
-	FunctionList []SqlFunction `json:"function_list"`
-	TypeCast     string        `json:"type_cast"`
-	Case         *Case         `json:"case"`
+	Table     string        `json:"table"`
+	Column    string        `json:"column"`
+	As        string        `json:"as"`
+	Values    []string      `json:"values"`
+	Functions []SqlFunction `json:"fns"`
+	Type      string        `json:"type"`
+	Case      *Case         `json:"case"`
 }
 
 type SelectOutput struct {
@@ -24,7 +35,7 @@ type QueryParameters struct {
 	RecursionInQuery   int
 	RowLimit           int
 	NumColumnsSelected int
-	ValuesList         []string
+	Values             []string
 }
 
 type Permissions struct {

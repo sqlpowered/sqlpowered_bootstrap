@@ -5,6 +5,8 @@ func ValidJoinOperators() []string {
 	return []string{
 		"eq",
 		"neq",
+		"gt",
+		"lt",
 	}
 }
 
@@ -32,6 +34,11 @@ func ValidFunctions() []string {
 		"avg",
 		"min",
 		"max",
+
+		"mult",
+		"div",
+		"sub",
+		"add",
 
 		//================================
 		// TODO: these need reviewing
@@ -61,5 +68,9 @@ func ValidTypeCasts() []string {
 		"float",
 		"integer",
 		"numeric",
+		"timestamp",
+		"interval",
+		"date",
+		"money",
 	}
 }

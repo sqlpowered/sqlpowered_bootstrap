@@ -80,7 +80,7 @@ HAVING
 
 ```
 
-This approach using positional arguments, clearly falls down in this example, see below:
+We can still manage this but it gets harder to deal with:
 ```json
 {
     "select" :[

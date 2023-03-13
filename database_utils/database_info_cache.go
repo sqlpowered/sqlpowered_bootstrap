@@ -9,28 +9,34 @@ type AllSchemasCache struct {
 	AllSchemas        []string
 	WriteLock         sync.Mutex
 	TimeCacheAcquired time.Time
-	TimeCacheStale    time.Time
 }
 
 type AllDatabasesCache struct {
 	AllDatabases      []string
 	WriteLock         sync.Mutex
 	TimeCacheAcquired time.Time
-	TimeCacheStale    time.Time
 }
 
 type AllTablesCache struct {
 	AllTables         []string
 	WriteLock         sync.Mutex
 	TimeCacheAcquired time.Time
-	TimeCacheStale    time.Time
 }
 
 type AllTablesColumnsCache struct {
 	AllTablesColumns  map[string][]string
 	WriteLock         sync.Mutex
 	TimeCacheAcquired time.Time
-	TimeCacheStale    time.Time
+}
+
+// TODO: add query cache
+//
+// TODO: add tiered caching, akin to CPU cache structure, but inverted,
+// with repeatedly accessed queries being promoted to higher priority caches
+type QueryCache struct {
+	QueryHash         map[string]string
+	WriteLock         sync.Mutex
+	TimeCacheAcquired time.Time
 }
 
 // TODO: finish

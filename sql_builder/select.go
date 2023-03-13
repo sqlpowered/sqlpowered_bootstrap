@@ -4,18 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"sqlpowered_bootstrap/lookup"
 
 	"github.com/lib/pq"
-	"golang.org/x/exp/slices"
 )
 
 type Case struct {
-	CaseWhens []Whens `json:"whens"`
-	Else      Select  `json:"else,omitempty"`
+	Whens []When `json:"whens"`
+	Else  Select `json:"else,omitempty"`
 }
 
-type Whens struct {
+type When struct {
 	When []Where `json:"when"`
 	Then Select  `json:"then"`
 }
@@ -53,121 +51,12 @@ type TablePermissions struct {
 	ColumnsInWhere []string
 }
 
-// Check the role is allowed to do their current actions
-func SelectCheckPermissions(
+func SelectBuildCase(
 	inputSelect Select,
-	permissions Permissions,
-) error {
-	return nil
-}
+	outputSql string,
+) (string, error) {
 
-// Validate the Select type is one of:
-//
-// 1.) table and column
-//
-// 2.) values
-//
-// 3.) case
-func ValidateSelectType(
-	inputSelect Select,
-) (bool, bool, bool, error) {
-
-	tableDefined := false
-	columnDefined := false
-	tableAndColumnDefined := false
-	valueDefined := false
-	caseDefined := false
-
-	if inputSelect.Table != "" {
-		tableDefined = true
-	}
-	if inputSelect.Column != "" {
-		columnDefined = true
-	}
-	if inputSelect.Value != "" {
-		valueDefined = true
-	}
-	if inputSelect.Case != nil && len(inputSelect.Case.CaseWhens) > 0 {
-		caseDefined = true
-	}
-
-	// validate the table and column only situation
-	if tableDefined && columnDefined {
-
-		tableAndColumnDefined = true
-
-		if valueDefined || caseDefined {
-			logString := fmt.Sprintf(
-				`when "table"(%v) and "column"(%v) are defined, cannot also define: "value"(%v) or "case"(%v)`,
-				tableDefined,
-				columnDefined,
-				valueDefined,
-				caseDefined,
-			)
-
-			log.Print(logString)
-			return false, false, false, fmt.Errorf(logString)
-		}
-
-		// must define both table and column
-	} else if tableDefined && !columnDefined {
-
-		logString := fmt.Sprintf(
-			`when "table"(%v) is defined, "column"(%v) must also be defined`,
-			tableDefined,
-			columnDefined,
-		)
-
-		log.Print(logString)
-		return false, false, false, fmt.Errorf(logString)
-
-		// must define both table and column
-	} else if !tableDefined && columnDefined {
-
-		logString := fmt.Sprintf(
-			`when "column"(%v) is defined, "table"(%v) must also be defined`,
-			columnDefined,
-			tableDefined,
-		)
-
-		log.Print(logString)
-		return false, false, false, fmt.Errorf(logString)
-	}
-
-	// validate case only situation
-	if caseDefined {
-		if tableDefined || columnDefined || valueDefined {
-			logString := fmt.Sprintf(
-				`when "case"(%v) is defined, cannot also define: "table"(%v), "column"(%v) or "value"(%v)`,
-				caseDefined,
-				tableDefined,
-				columnDefined,
-				valueDefined,
-			)
-
-			log.Print(logString)
-			return false, false, false, fmt.Errorf(logString)
-		}
-	}
-
-	// validate values only situation
-	if valueDefined {
-		if caseDefined || tableDefined || columnDefined {
-
-			logString := fmt.Sprintf(
-				`when "value"(%v) is defined, cannot also define: "table"(%v), "column"(%v) or "case"(%v)`,
-				valueDefined,
-				tableDefined,
-				columnDefined,
-				caseDefined,
-			)
-
-			log.Print(logString)
-			return false, false, false, fmt.Errorf(logString)
-		}
-	}
-
-	return tableAndColumnDefined, valueDefined, caseDefined, nil
+	return outputSql, nil
 }
 
 func SelectBuildFns(
@@ -175,33 +64,7 @@ func SelectBuildFns(
 	outputSql string,
 ) (string, error) {
 
-	// when a "type" is defined, the first item in "Fns" cannot also have a type
-	if inputSelect.Type != "" && len(inputSelect.Fns) > 0 {
-		if inputSelect.Fns[0].Type != "" {
-
-			logString := `when a top level "type" is defined, the first "fn" in "fns" cannot also have a "type"`
-			log.Print(logString)
-			return "", fmt.Errorf(logString)
-		}
-	}
-
-	for _, fnItem := range inputSelect.Fns {
-		// validate the function names are valid
-		if !slices.Contains(lookup.ValidFunctions(), fnItem.Fn) {
-
-			logString := fmt.Sprintf(`invalid "fn" value: %v, valid values: %v`,
-				fnItem.Fn,
-				lookup.ValidFunctions(),
-			)
-			log.Print(logString)
-			return "", fmt.Errorf(logString)
-		}
-
-		// evaluate Fns: [{"fn": "first"}, {"fn": "second"}, {"fn": "third"}]
-
-	}
-
-	return "", nil
+	return outputSql, nil
 }
 
 // Build the sql string
@@ -223,22 +86,13 @@ func SelectBuildSqlString(
 
 	} else if valueDefined {
 		outputSql = pq.QuoteLiteral(inputSelect.Value)
-	}
 
-	if inputSelect.Type != "" {
+	} else if caseDefined {
 
-		// validate the "type" is valid
-		if !slices.Contains(lookup.ValidTypeCasts(), inputSelect.Type) {
-
-			logString := fmt.Sprintf(`invalid "type" value: %v, valid values: %v`,
-				inputSelect.Type,
-				lookup.ValidTypeCasts(),
-			)
-			log.Print(logString)
-			return "", fmt.Errorf(logString)
+		outputSql, err = SelectBuildCase(inputSelect, outputSql)
+		if err != nil {
+			return "", err
 		}
-
-		outputSql = fmt.Sprintf("%s::%s", outputSql, inputSelect.Type)
 
 	}
 
@@ -249,18 +103,17 @@ func SelectBuildSqlString(
 		}
 	}
 
-	log.Print("outputSql after SelectBuildFns: ", outputSql)
+	if inputSelect.Type != "" {
+		outputSql = fmt.Sprintf("%s::%s", outputSql, inputSelect.Type)
+	}
 
-	return "", nil
-}
+	if inputSelect.As != "" {
+		outputSql = fmt.Sprintf("%s as %s", outputSql, pq.QuoteIdentifier(inputSelect.As))
+	}
 
-// Check the Select is not exceeding the allowed maximums for query parameters
-func SelectCheckParameters(
-	inputSelect Select,
-	queryParameters QueryParameters,
-	maxQueryParameters QueryParameters,
-) error {
-	return nil
+	log.Print("outputSql after SelectBuildSqlString: ", outputSql)
+
+	return outputSql, nil
 }
 
 // replace "where fy_year > 2018" with "where fy_year > $1"
@@ -292,7 +145,7 @@ func ReplaceValuesQueryParameter(
 	return inputSelect, queryParameters
 }
 
-func SelectBuild(
+func SelectValidateAndBuild(
 	inputJson map[string]any,
 	queryParameters QueryParameters,
 	maxQueryParameters QueryParameters,
@@ -316,27 +169,9 @@ func SelectBuild(
 
 	tableAndColumnDefined,
 		valueDefined,
-		caseDefined,
-		err := ValidateSelectType(
-		inputSelect,
-	)
+		caseDefined, err := SelectValidate(inputSelect, permissions)
 	if err != nil {
 		return "", err
-	}
-	log.Printf("tableAndColumnDefined(%v) valueDefined(%v) caseDefined(%v)",
-		tableAndColumnDefined,
-		valueDefined,
-		caseDefined,
-	)
-	//==========================
-	err = SelectCheckPermissions(
-		inputSelect,
-		permissions,
-	)
-	if err != nil {
-		errorString := fmt.Sprintf("permissions error creating Select, error: %+v", err)
-		log.Print(errorString)
-		return "", fmt.Errorf(errorString)
 	}
 
 	// substitute inputSelect.Values with [$1,$2,$3 etc] and store in queryParameters.ValueList

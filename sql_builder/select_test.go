@@ -39,7 +39,7 @@ func TestSelectBuild(t *testing.T) {
 		log.Fatalf("%v", err)
 	}
 
-	SelectBuild(
+	SelectValidateAndBuild(
 		inputData,
 		QueryParameters{},
 		QueryParameters{

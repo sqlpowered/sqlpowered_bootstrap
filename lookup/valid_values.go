@@ -61,7 +61,7 @@ func ValidFunctions() []string {
 	}
 }
 
-func ValidTypeCasts() []string {
+func ValidTypes() []string {
 	return []string{
 		"varchar",
 		"text",

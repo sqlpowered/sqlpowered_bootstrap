@@ -2,7 +2,7 @@ package sql_builder
 
 type GroupBy struct {
 	Column string `json:"column"`
-	Table  string `json:"table,omitempty"`
+	Table  string `json:"table"`
 }
 
 type GroupByOutput struct {

@@ -192,8 +192,8 @@ func SelectValidateFns(
 		if !slices.Contains(lookup.ValidTypes(), fnItem.Type) {
 
 			logString := fmt.Sprintf(`invalid "Type" on "fn": %v, valid values: %v`,
-				fnItem.Fn,
-				lookup.ValidFunctions(),
+				fnItem.Type,
+				lookup.ValidTypes(),
 			)
 			log.Print(logString)
 			return fmt.Errorf(logString)

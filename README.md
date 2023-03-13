@@ -1,17 +1,15 @@
+> <br>
+> <b> 🚨 Pre-Alpha software 🚨 
+> <br>
+> <br> 🚧 A work in progress 🚧</b>
+> <br>
+> <br>
+
 # Project Goals
-
-
+> <br> 
+> Make Postgres into a "database as a service", with a Dynamic, scalable, safe API to the Postgres database.</b>
 > <br>
-> <p style="color:red"><b>Pre-Alpha software, still a work in progress</b></p>
-> 
 > <br>
-<br>
-
-> <br>
-> Make Postgres into a "database as a service", with a Dynamic, scalable, safe API to the Postgres database.
-> 
-> <br>
-<br>
 
 ## Simple
 - Queries can respond to user input in real time, ideal for web **frontend** or **mobile** development, can change the query structure in real time. No need to make many different APIs.

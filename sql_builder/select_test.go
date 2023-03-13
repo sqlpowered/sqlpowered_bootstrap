@@ -57,10 +57,14 @@ func TestSelectBuild(t *testing.T) {
 
 func TestReplaceValuesQueryParameter(t *testing.T) {
 
-	expectedQueryParametersOutput := []string{"drop tables;", "--", ";"}
-	selectOutput := []string{"$1", "$2", "$3"}
+	// expectedQueryParametersOutput := []string{"drop tables;", "--", ";"}
+	// selectOutput := []string{"$1", "$2", "$3"}
 
-	inputSelect := Select{Values: slices.Clone(expectedQueryParametersOutput)}
+	// TODO: add more items to this select as support expands
+	expectedQueryParametersOutput := []string{"drop tables;"}
+	selectOutput := "$1"
+
+	inputSelect := Select{Value: "drop tables;"}
 	queryParameters := QueryParameters{}
 
 	log.Printf("%+v", inputSelect)
@@ -79,10 +83,10 @@ func TestReplaceValuesQueryParameter(t *testing.T) {
 		)
 	}
 
-	if !slices.Equal(inputSelect.Values, selectOutput) {
+	if inputSelect.Value != selectOutput {
 		log.Fatalf(`unable to produce selectOutput: %v in "values": %v`,
 			selectOutput,
-			inputSelect.Values,
+			inputSelect.Value,
 		)
 	}
 

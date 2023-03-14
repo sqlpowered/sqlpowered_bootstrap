@@ -164,6 +164,7 @@ func SelectValidateType(
 
 func SelectValidateFns(
 	inputSelect Select,
+	permissions Permissions,
 ) error {
 	// when a "type" is defined, the first item in "Fns" cannot also have a type
 	if inputSelect.Type != "" && len(inputSelect.Fns) > 0 {
@@ -197,6 +198,14 @@ func SelectValidateFns(
 			)
 			log.Print(logString)
 			return fmt.Errorf(logString)
+		}
+
+		// validate inputSelect.Args[] which are Select[]
+		for _, arg := range fnItem.Args {
+			_, _, _, err := SelectValidate(arg, permissions)
+			if err != nil {
+				return err
+			}
 		}
 
 	}
@@ -266,7 +275,7 @@ func SelectValidate(
 		caseDefined,
 	)
 
-	err = SelectValidateFns(inputSelect)
+	err = SelectValidateFns(inputSelect, permissions)
 	if err != nil {
 		return tableAndColumnDefined, valueDefined, caseDefined, err
 	}

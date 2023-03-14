@@ -5,5 +5,12 @@
     "databaseHost": "localhost",
     "databasePort": "5432",
     "databaseUsername": "postgres",
-    "databasePassword": "password"
+    "databasePassword": "password",
+    "apiAccessibleTables": [
+        "city",
+        "district",
+        "product",
+        "retail_shop",
+        "retail_shop_product_stock"
+    ]
 }

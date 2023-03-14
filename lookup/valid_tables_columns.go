@@ -3,15 +3,16 @@ package lookup
 import (
 	"fmt"
 	"log"
+	"sqlpowered_bootstrap/api_config_management"
 	"sqlpowered_bootstrap/database_utils"
 	"strings"
 
 	"github.com/lib/pq"
 )
 
+// validate the apiConfig["apiAccessibleTables"] are all defined in the database
 func ListAllTables(
-	apiConfig map[string]string,
-	excludedTables []string,
+	apiConfig api_config_management.ApiConfig,
 ) ([]string, error) {
 
 	db, err := database_utils.Connect(apiConfig)
@@ -20,49 +21,38 @@ func ListAllTables(
 	}
 
 	sqlQuery := ""
+	apiAccessibleTablesQuoted := []string{}
+
+	if len(apiConfig.ApiAccessibleTables) == 0 {
+
+		errorString := `apiConfig["apiAccessibleTables"] is empty, add a "table" to be allowed to use the API`
+		log.Print(errorString)
+		return []string{}, fmt.Errorf(errorString)
+	}
 
 	// TODO: use QueryIntoJson to run queries, and pass values to the db safely
 	// Then can support values from an API as well as the current config file
-	if len(excludedTables) > 0 {
-		excludedTablesQuoted := []string{}
-		for _, table := range excludedTables {
-			excludedTablesQuoted = append(excludedTablesQuoted, pq.QuoteLiteral(table))
-		}
 
-		sqlQuery = fmt.Sprintf(`
-		select
-			table_name
-		from
-			information_schema.tables
-		where
-			table_schema = %s
-			and table_catalog = %s
-			and table_name not in (%s)
-		order by 
-			table_name;
-		`,
-			pq.QuoteLiteral(apiConfig["databaseSchemaName"]),
-			pq.QuoteLiteral(apiConfig["databaseName"]),
-			strings.Join(excludedTablesQuoted, ","),
-		)
-
-	} else if len(excludedTables) == 0 {
-
-		sqlQuery = fmt.Sprintf(`
-		select
-			table_name
-		from
-			information_schema.tables
-		where
-			table_schema = %s
-			and table_catalog = %s
-		order by 
-			table_name;
-		`,
-			pq.QuoteLiteral(apiConfig["databaseSchemaName"]),
-			pq.QuoteLiteral(apiConfig["databaseName"]),
-		)
+	for _, table := range apiConfig.ApiAccessibleTables {
+		apiAccessibleTablesQuoted = append(apiAccessibleTablesQuoted, pq.QuoteLiteral(table))
 	}
+
+	sqlQuery = fmt.Sprintf(`
+	select
+		table_name
+	from
+		information_schema.tables
+	where
+		table_schema = %s
+		and table_catalog = %s
+		and table_name in (%s)
+	order by
+		table_name;
+	`,
+		pq.QuoteLiteral(apiConfig.DatabaseSchemaName),
+		pq.QuoteLiteral(apiConfig.DatabaseName),
+		strings.Join(apiAccessibleTablesQuoted, ","),
+	)
 
 	log.Print(sqlQuery)
 
@@ -95,7 +85,7 @@ func ListAllTables(
 }
 
 func ListAllTablesColumns(
-	apiConfig map[string]string,
+	apiConfig api_config_management.ApiConfig,
 	tablesList []string,
 ) (map[string][]string, error) {
 
@@ -126,8 +116,8 @@ func ListAllTablesColumns(
 		table_name, column_name;
 	`,
 		strings.Join(includedTablesQuoted, ","),
-		pq.QuoteLiteral(apiConfig["databaseSchemaName"]),
-		pq.QuoteLiteral(apiConfig["databaseName"]),
+		pq.QuoteLiteral(apiConfig.DatabaseSchemaName),
+		pq.QuoteLiteral(apiConfig.DatabaseName),
 	)
 
 	log.Print(sqlQuery)
@@ -165,7 +155,7 @@ func ListAllTablesColumns(
 }
 
 func ListAllDb(
-	apiConfig map[string]string,
+	apiConfig api_config_management.ApiConfig,
 	excludedDbs []string,
 	excludedSchemas []string,
 ) ([]string, error) {
@@ -242,7 +232,7 @@ func ListAllDb(
 }
 
 func ListAllSchemas(
-	apiConfig map[string]string,
+	apiConfig api_config_management.ApiConfig,
 	excludedSchemas []string,
 ) ([]string, error) {
 

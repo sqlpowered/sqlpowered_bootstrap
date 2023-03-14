@@ -166,6 +166,7 @@ func SelectValidateFns(
 	inputSelect Select,
 	permissions Permissions,
 ) error {
+
 	// when a "type" is defined, the first item in "Fns" cannot also have a type
 	if inputSelect.Type != "" && len(inputSelect.Fns) > 0 {
 		if inputSelect.Fns[0].Type != "" {
@@ -189,7 +190,7 @@ func SelectValidateFns(
 			return fmt.Errorf(logString)
 		}
 
-		// validate the function names are valid
+		// validate the function "type" is valid
 		if !slices.Contains(lookup.ValidTypes(), fnItem.Type) {
 
 			logString := fmt.Sprintf(`invalid "Type" on "fn": %v, valid values: %v`,
@@ -256,6 +257,22 @@ func SelectCheckParameters(
 	return nil
 }
 
+func SelectValidateTable(
+	inputSelect Select,
+	permissions Permissions,
+) error {
+
+	return nil
+}
+
+func SelectValidateColumn(
+	inputSelect Select,
+	permissions Permissions,
+) error {
+
+	return nil
+}
+
 func SelectValidate(
 	inputSelect Select,
 	permissions Permissions,
@@ -274,6 +291,19 @@ func SelectValidate(
 		valueDefined,
 		caseDefined,
 	)
+
+	if tableAndColumnDefined {
+
+		err = SelectValidateTable(inputSelect, permissions)
+		if err != nil {
+			return tableAndColumnDefined, valueDefined, caseDefined, err
+		}
+
+		err = SelectValidateColumn(inputSelect, permissions)
+		if err != nil {
+			return tableAndColumnDefined, valueDefined, caseDefined, err
+		}
+	}
 
 	err = SelectValidateFns(inputSelect, permissions)
 	if err != nil {

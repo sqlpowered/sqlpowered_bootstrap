@@ -17,11 +17,13 @@ func TestListAllTables(t *testing.T) {
 		log.Fatalf("failed to load: %s, error: %v", apiConfigFileName, err)
 	}
 
-	excludedTables := []string{"foo", "bar", "box"}
+	apiConfig.ApiAccessibleTables = []string{
+		"city",
+		"district",
+	}
 
 	allTables, err := ListAllTables(
 		apiConfig,
-		excludedTables,
 	)
 	if err != nil {
 		log.Fatalf("failed to ListAllTables, error: %v", err)
@@ -30,9 +32,6 @@ func TestListAllTables(t *testing.T) {
 	expectedAllTables := []string{
 		"city",
 		"district",
-		"product",
-		"retail_shop",
-		"retail_shop_product_stock",
 	}
 
 	testing_utils.SlicesEqualOrderIndependent(

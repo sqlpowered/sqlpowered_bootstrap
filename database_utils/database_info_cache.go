@@ -45,6 +45,7 @@ func UpdateAllDatabaseCaches(
 	allTablesColumnsCache *AllTablesColumnsCache,
 	apiConfigFilename string,
 ) {
+
 	return
 }
 

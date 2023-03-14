@@ -23,7 +23,6 @@ func TestSelectBuild(t *testing.T) {
 	}
 	allTables, err := lookup.ListAllTables(
 		apiConfig,
-		[]string{},
 	)
 	if err != nil {
 		log.Fatalf("%v", err)

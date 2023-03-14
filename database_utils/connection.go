@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"sqlpowered_bootstrap/api_config_management"
 )
 
 // Establish database connection.
@@ -21,28 +22,36 @@ import (
 // databaseUsername
 //
 // databasePassword
-func Connect(apiConfig map[string]string) (*sql.DB, error) {
+func Connect(
+	apiConfig api_config_management.ApiConfig,
+) (*sql.DB, error) {
 
-	for _, envVar := range []string{
-		"databaseSslmode",
-		"databaseName",
-		"databaseHost",
-		"databasePort",
-		"databaseUsername",
-		"databasePassword",
-	} {
-		if apiConfig[envVar] == "" {
-			log.Fatalf("required api_config.json setting: %s is not defined, exiting", envVar)
-		}
+	if apiConfig.DatabaseSslmode == "" {
+		log.Fatalf(`required api_config.json setting: "databaseSslmode" is not defined, exiting`)
+	}
+	if apiConfig.DatabaseName == "" {
+		log.Fatalf(`required api_config.json setting: "databaseName" is not defined, exiting`)
+	}
+	if apiConfig.DatabaseHost == "" {
+		log.Fatalf(`required api_config.json setting: "databaseHost" is not defined, exiting`)
+	}
+	if apiConfig.DatabasePort == "" {
+		log.Fatalf(`required api_config.json setting: "databasePort" is not defined, exiting`)
+	}
+	if apiConfig.DatabaseUsername == "" {
+		log.Fatalf(`required api_config.json setting: "databaseUsername" is not defined, exiting`)
+	}
+	if apiConfig.DatabasePassword == "" {
+		log.Fatalf(`required api_config.json setting: "databasePassword" is not defined, exiting`)
 	}
 
 	connectionString := fmt.Sprintf("sslmode=%s dbname=%s host=%s port=%s user=%s password=%s ",
-		apiConfig["databaseSslmode"],
-		apiConfig["databaseName"],
-		apiConfig["databaseHost"],
-		apiConfig["databasePort"],
-		apiConfig["databaseUsername"],
-		apiConfig["databasePassword"],
+		apiConfig.DatabaseSslmode,
+		apiConfig.DatabaseName,
+		apiConfig.DatabaseHost,
+		apiConfig.DatabasePort,
+		apiConfig.DatabaseUsername,
+		apiConfig.DatabasePassword,
 	)
 
 	db, err := sql.Open("postgres", connectionString)
